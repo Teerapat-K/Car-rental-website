@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Rental System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Car Rental System</h1>
+        <nav>
+            <button id="nav-categories" class="nav-btn">Car Categories</button>
+            <button id="nav-rent" class="nav-btn active">Rent a Car</button>
+            <button id="nav-dashboard" class="nav-btn">Locations Dashboard</button>
+            <button id="nav-profile" class="nav-btn">My Profile</button>
+            <button id="nav-admin" class="nav-btn" style="background-color: #333; color: white;">Admin Dashboard</button>
+        </nav>
+    </header>
+    <main>
+        <!-- Catalog/Categories Section -->
+        <section id="categories-section" class="hidden">
+            <h2>Our Car Categories</h2>
+            <div id="categories-grid" class="cars-grid">
+                <!-- Categories will be injected here -->
+            </div>
+        </section>
+
+        <!-- Admin Login Section -->
+        <section id="admin-login-section" class="hidden">
+            <h2>Admin Login</h2>
+            <form id="admin-login-form" style="max-width: 400px; margin: 0 auto;">
+                <div class="form-group">
+                    <label for="admin-email">Email:</label>
+                    <input type="email" id="admin-email" required placeholder="Adminploy@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password:</label>
+                    <input type="password" id="admin-password" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            <div id="admin-login-message" class="message"></div>
+        </section>
+
+        <!-- Admin Fleet Dashboard Section -->
+        <section id="admin-fleet-section" class="hidden">
+            <h2>Fleet Management Dashboard (Rented Cars)</h2>
+            <div id="fleet-list" class="cars-grid">
+                <!-- Fleet items will be injected here -->
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" class="hidden">
+            <h2>Vehicle Availability Dashboard</h2>
+            <div id="dashboard-grid" class="dashboard-grid">
+                <!-- Dashboard items will be injected here -->
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profile-section" class="hidden">
+            <h2>Customer Profile & History</h2>
+            <form id="profile-search-form" class="form-group">
+                <label for="profile-tdl">Enter Thai Driving Licence (TDL_ID) to view profile:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="profile-tdl" required placeholder="e.g. 1234567890123">
+                    <button type="submit" style="margin-top: 0;">Search</button>
+                </div>
+            </form>
+            <div id="profile-error" class="message"></div>
+            
+            <div id="profile-details" class="hidden">
+                <h3>Personal Details</h3>
+                <div class="profile-card">
+                    <p><strong>Name:</strong> <span id="prof-name"></span></p>
+                    <p><strong>Phone:</strong> <span id="prof-phone"></span></p>
+                    <p><strong>Email:</strong> <span id="prof-email"></span></p>
+                    <p><strong>City:</strong> <span id="prof-city"></span></p>
+                </div>
+
+                <h3>Booking History</h3>
+                <div id="booking-history-list">
+                    <!-- History items will be injected here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Section -->
+        <section id="search-section">
+            <h2>Find a Car</h2>
+            <form id="search-form">
+                <div class="form-group">
+                    <label for="pickup-location">Pickup Location:</label>
+                    <select id="pickup-location" required>
+                        <option value="">Select location</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="return-location">Return Location:</label>
+                    <select id="return-location" required>
+                        <option value="">Select location</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pickup-date">Pickup Date & Time:</label>
+                    <input type="datetime-local" id="pickup-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="return-date">Return Date & Time:</label>
+                    <input type="datetime-local" id="return-date" required>
+                </div>
+                <button type="submit">Search Available Cars</button>
+            </form>
+            <div id="search-message" class="message"></div>
+        </section>
+
+        <!-- Car Selection Section -->
+        <section id="cars-section" class="hidden">
+            <h2>Available Cars</h2>
+            <div id="cars-list" class="cars-grid"></div>
+            <button id="back-to-search" class="secondary-btn">Back to Search</button>
+        </section>
+
+        <!-- Payment Section -->
+        <section id="payment-section" class="hidden">
+            <h2>Complete Reservation</h2>
+            <form id="payment-form">
+                <h3>Personal Information</h3>
+                <div class="form-group">
+                    <label for="fname">First Name:</label>
+                    <input type="text" id="fname" required>
+                </div>
+                <div class="form-group">
+                    <label for="lname">Last Name:</label>
+                    <input type="text" id="lname" required>
+                </div>
+                <div class="form-group">
+                    <label for="tdl">Thai Driving Licence (TDL_ID):</label>
+                    <input type="text" id="tdl" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone:</label>
+                    <input type="text" id="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="city">City:</label>
+                    <input type="text" id="city" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+                </div>
+
+                <h3>Payment Information</h3>
+                <div class="disclaimer">
+                    <strong>Note:</strong> This is a simulation for testing. Do not enter real credit card details. Actual implementations must process card data via secure, PCI-compliant gateways like Stripe.
+                </div>
+                
+                <div class="form-group">
+                    <label for="card-num">Card Number:</label>
+                    <input type="text" id="card-num" required placeholder="0000 0000 0000 0000" pattern="\d{16}" title="16 digit card number">
+                </div>
+                <div class="form-group" style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label for="expiry">Expiry Date:</label>
+                        <input type="text" id="expiry" required placeholder="MM/YY" pattern="\d{2}/\d{2}" title="Format MM/YY">
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="cvv">CVV:</label>
+                        <input type="text" id="cvv" required placeholder="123" pattern="\d{3,4}" title="3 or 4 digit CVV">
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button type="button" id="cancel-payment" class="secondary-btn">Cancel</button>
+                    <button type="submit">Confirm Payment</button>
+                </div>
+            </form>
+            <div id="payment-message" class="message"></div>
+        </section>
+
+        <!-- Success Section -->
+        <section id="success-section" class="hidden">
+            <h2>Payment Successfully!</h2>
+            <p>Your reservation has been confirmed and logged in the system.</p>
+            <button id="view-history">Return to Home</button>
+        </section>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>
