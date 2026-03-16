@@ -214,7 +214,15 @@ app.get('/api/admin/pending-pickups', async (req, res) => {
             ORDER BY r.pickupDate ASC
         `;
         const [cars] = await db.query(query);
-        res.json(cars);
+        const uniqueCars = [];
+        const seenCarIds = new Set();
+        for (const car of cars) {
+            if (!seenCarIds.has(car.car_id)) {
+                seenCarIds.add(car.car_id);
+                uniqueCars.push(car);
+            }
+        }
+        res.json(uniqueCars);
     } catch (err) {
         console.error('Error fetching pending pickups:', err);
         res.status(500).json({ error: 'Failed to retrieve pending pickups' });
@@ -266,7 +274,15 @@ app.get('/api/admin/rented-cars', async (req, res) => {
             ORDER BY r.returnDate ASC
         `;
         const [cars] = await db.query(query);
-        res.json(cars);
+        const uniqueCars = [];
+        const seenCarIds = new Set();
+        for (const car of cars) {
+            if (!seenCarIds.has(car.car_id)) {
+                seenCarIds.add(car.car_id);
+                uniqueCars.push(car);
+            }
+        }
+        res.json(uniqueCars);
     } catch (err) {
         console.error('Error fetching rented cars:', err);
         res.status(500).json({ error: 'Failed to retrieve rented cars' });
