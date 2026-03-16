@@ -203,17 +203,66 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadAdminFleet() {
         elements.containers.fleetList.innerHTML = 'Loading fleet data...';
         try {
-            const res = await fetch('/api/admin/rented-cars');
-            if (!res.ok) throw new Error('Failed to load fleet data');
-            const data = await res.json();
+            const [pendingRes, rentedRes] = await Promise.all([
+                fetch('/api/admin/pending-pickups'),
+                fetch('/api/admin/rented-cars')
+            ]);
+
+            if (!pendingRes.ok || !rentedRes.ok) throw new Error('Failed to load fleet data');
+            const pendingData = await pendingRes.json();
+            const rentedData = await rentedRes.json();
             
             elements.containers.fleetList.innerHTML = '';
-            if (data.length === 0) {
-                elements.containers.fleetList.innerHTML = '<p>No cars currently rented.</p>';
+
+            // Render Pending Pickups
+            const pendingHeader = document.createElement('h2');
+            pendingHeader.textContent = 'Pending Pickups';
+            elements.containers.fleetList.appendChild(pendingHeader);
+
+            if (pendingData.length === 0) {
+                elements.containers.fleetList.innerHTML += '<p>No pending pickups.</p>';
             } else {
-                data.forEach(car => {
+                const pendingContainer = document.createElement('div');
+                pendingContainer.style.display = 'grid';
+                pendingContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(300px, 1fr))';
+                pendingContainer.style.gap = '20px';
+                pendingContainer.style.marginBottom = '20px';
+
+                pendingData.forEach(car => {
                     const card = document.createElement('div');
                     card.className = 'car-card';
+                    card.style.borderLeft = '5px solid #28a745';
+                    card.innerHTML = `
+                        <h3>${car.brand} ${car.model}</h3>
+                        <p><strong>Car_ID:</strong> ${car.car_id}</p>
+                        <p><strong>Pickup Date:</strong> ${new Date(car.pickupDate).toLocaleDateString()}</p>
+                        <p><strong>Return Date:</strong> ${new Date(car.returnDate).toLocaleDateString()}</p>
+                        <hr style="margin: 10px 0;">
+                        <button class="pickup-btn" data-car-id="${car.car_id}" data-status-id="${car.status_id}" style="width: 100%; background-color: #28a745; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer;">Confirm Pickup</button>
+                    `;
+                    pendingContainer.appendChild(card);
+                });
+                elements.containers.fleetList.appendChild(pendingContainer);
+            }
+
+            // Render Active Rentals (Returns)
+            const returnHeader = document.createElement('h2');
+            returnHeader.textContent = 'Active Rentals (Awaiting Return)';
+            returnHeader.style.marginTop = '30px';
+            elements.containers.fleetList.appendChild(returnHeader);
+
+            if (rentedData.length === 0) {
+                elements.containers.fleetList.innerHTML += '<p>No cars currently rented.</p>';
+            } else {
+                const rentedContainer = document.createElement('div');
+                rentedContainer.style.display = 'grid';
+                rentedContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(300px, 1fr))';
+                rentedContainer.style.gap = '20px';
+
+                rentedData.forEach(car => {
+                    const card = document.createElement('div');
+                    card.className = 'car-card';
+                    card.style.borderLeft = '5px solid #dc3545';
                     card.innerHTML = `
                         <h3>${car.brand} ${car.model}</h3>
                         <p><strong>Car_ID:</strong> ${car.car_id}</p>
@@ -230,36 +279,63 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="return-btn" data-car-id="${car.car_id}" data-status-id="${car.status_id}" style="width: 100%;">Process Return</button>
                         </div>
                     `;
-                    elements.containers.fleetList.appendChild(card);
+                    rentedContainer.appendChild(card);
                 });
-
-                document.querySelectorAll('.return-btn').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const carId = e.target.getAttribute('data-car-id');
-                        const statusId = e.target.getAttribute('data-status-id');
-                        const conditionSelect = document.getElementById(`condition-${carId}`);
-                        const condition = conditionSelect.value;
-                        
-                        try {
-                            const returnRes = await fetch('/api/admin/return', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ car_id: carId, status_id: statusId, car_condition: condition })
-                            });
-                            const returnData = await returnRes.json();
-                            
-                            if (returnRes.ok && returnData.success) {
-                                alert(returnData.message);
-                                loadAdminFleet(); // Reload list
-                            } else {
-                                alert('Error: ' + returnData.error);
-                            }
-                        } catch (err) {
-                            alert('Network error while processing return.');
-                        }
-                    });
-                });
+                elements.containers.fleetList.appendChild(rentedContainer);
             }
+
+            // Add Event Listeners for Pickups
+            document.querySelectorAll('.pickup-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const carId = e.target.getAttribute('data-car-id');
+                    const statusId = e.target.getAttribute('data-status-id');
+                    try {
+                        const pickupRes = await fetch('/api/admin/pickup', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ car_id: carId, status_id: statusId })
+                        });
+                        const data = await pickupRes.json();
+                        if (data.success) {
+                            alert(data.message);
+                            loadAdminFleet();
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                    } catch (err) {
+                        alert('Network error while processing pickup.');
+                    }
+                });
+            });
+
+            // Add Event Listeners for Returns
+            document.querySelectorAll('.return-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const carId = e.target.getAttribute('data-car-id');
+                    const statusId = e.target.getAttribute('data-status-id');
+                    const conditionSelect = document.getElementById(`condition-${carId}`);
+                    const condition = conditionSelect.value;
+                    
+                    try {
+                        const returnRes = await fetch('/api/admin/return', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ car_id: carId, status_id: statusId, car_condition: condition })
+                        });
+                        const returnData = await returnRes.json();
+                        
+                        if (returnRes.ok && returnData.success) {
+                            alert(returnData.message);
+                            loadAdminFleet(); // Reload list
+                        } else {
+                            alert('Error: ' + returnData.error);
+                        }
+                    } catch (err) {
+                        alert('Network error while processing return.');
+                    }
+                });
+            });
+
         } catch (err) {
             elements.containers.fleetList.innerHTML = `<p class="message error">${err.message}</p>`;
         }
