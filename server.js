@@ -37,11 +37,11 @@ app.post('/api/search', async (req, res) => {
             SELECT c.*, ct.typeLabel as type_name, ct.service_rate as price_per_day
             FROM car c
             JOIN car_type ct ON c.type_id = ct.type_id
-            WHERE c.car_status = 'Available'
+            WHERE c.car_status != 'not ready'
               AND c.currentLocation_id = ?
               AND c.car_id NOT IN (
                   SELECT car_id FROM reservation
-                  WHERE (pickupDate <= ? AND returnDate >= ?)
+                  WHERE (pickupDate < ? AND returnDate > ?)
               )
         `;
         
@@ -97,7 +97,7 @@ app.post('/api/reserve', async (req, res) => {
 
         await connection.query(`
             INSERT INTO pickupreturn_status (status_id, pickupLocation_id, ReturnLocation_id, pickupDate, returnDate, car_condition) 
-            VALUES (?, ?, ?, ?, ?, 'Pending')
+            VALUES (?, ?, ?, ?, ?, 'Pending Pickup')
         `, [nextStatusId, pickupLocationId, returnLocationId, pickupDate, returnDate]);
 
         // 3. Get rate and calculate amount
@@ -116,17 +116,6 @@ app.post('/api/reserve', async (req, res) => {
                 pickupDate, returnDate, payment_check, status_id
             ) VALUES (?, ?, ?, ?, NOW(), ?, ?, 1, ?)
         `, [nextResId, carId, finalCustId, amount, pickupDate, returnDate, nextStatusId]);
-
-        // 5. Update Car Status (State Machine Booking Phase)
-        const [updateResult] = await connection.query(`
-            UPDATE car 
-            SET car_status = 'rented' 
-            WHERE car_id = ? AND car_status = 'Available'
-        `, [carId]);
-
-        if (updateResult.affectedRows === 0) {
-            throw new Error('Car is no longer available. Please select another car.');
-        }
 
         // Commit transaction
         await connection.commit();
@@ -211,15 +200,69 @@ app.post('/api/admin/login', (req, res) => {
     }
 });
 
+// GET /api/admin/pending-pickups - Admin Dashboard: List of cars pending pickup
+app.get('/api/admin/pending-pickups', async (req, res) => {
+    try {
+        const query = `
+            SELECT c.car_id, c.brand, c.model, c.car_status, 
+                   r.reservation_id, r.pickupDate, r.returnDate, r.status_id,
+                   s.car_condition
+            FROM car c
+            JOIN reservation r ON c.car_id = r.car_id
+            JOIN pickupreturn_status s ON r.status_id = s.status_id
+            WHERE s.car_condition = 'Pending Pickup'
+            ORDER BY r.pickupDate ASC
+        `;
+        const [cars] = await db.query(query);
+        res.json(cars);
+    } catch (err) {
+        console.error('Error fetching pending pickups:', err);
+        res.status(500).json({ error: 'Failed to retrieve pending pickups' });
+    }
+});
+
+// POST /api/admin/pickup - Admin Confirm Pickup
+app.post('/api/admin/pickup', async (req, res) => {
+    const { car_id, status_id } = req.body;
+    const connection = await db.getConnection();
+
+    try {
+        await connection.beginTransaction();
+
+        // 1. Update pickupreturn_status to 'Rented'
+        await connection.query(
+            "UPDATE pickupreturn_status SET car_condition = 'Rented' WHERE status_id = ?",
+            [status_id]
+        );
+
+        // 2. Update car status to 'rented'
+        await connection.query(
+            "UPDATE car SET car_status = 'rented' WHERE car_id = ?",
+            [car_id]
+        );
+
+        await connection.commit();
+        res.json({ success: true, message: 'Pickup confirmed. Car status set to rented.' });
+    } catch (err) {
+        await connection.rollback();
+        console.error('Error confirming pickup:', err);
+        res.status(500).json({ error: 'Failed to confirm pickup: ' + err.message });
+    } finally {
+        connection.release();
+    }
+});
+
 // GET /api/admin/rented-cars - Admin Dashboard: List of rented cars
 app.get('/api/admin/rented-cars', async (req, res) => {
     try {
         const query = `
             SELECT c.car_id, c.brand, c.model, c.car_status, 
-                   r.reservation_id, r.pickupDate, r.returnDate, r.status_id
+                   r.reservation_id, r.pickupDate, r.returnDate, r.status_id,
+                   s.car_condition
             FROM car c
             JOIN reservation r ON c.car_id = r.car_id
-            WHERE c.car_status = 'rented'
+            JOIN pickupreturn_status s ON r.status_id = s.status_id
+            WHERE s.car_condition = 'Rented'
             ORDER BY r.returnDate ASC
         `;
         const [cars] = await db.query(query);
