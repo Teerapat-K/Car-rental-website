@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const card = document.createElement('div');
                     card.className = 'dashboard-card';
                     card.innerHTML = `
-                        <h3>${item.city}</h3>
+                        <h3>${item.city} - ${item.address}</h3>
                         <p>Available Cars</p>
                         <p class="count">${item.available_count}</p>
                     `;
