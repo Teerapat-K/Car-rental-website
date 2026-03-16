@@ -145,13 +145,12 @@ app.post('/api/reserve', async (req, res) => {
 app.get('/api/dashboard', async (req, res) => {
     try {
         const query = `
-            SELECT o.city, o.location_id, COUNT(c.car_id) as available_count 
-            FROM crc_office o 
-            LEFT JOIN car c ON o.location_id = c.currentLocation_id AND c.car_status = 'Available' 
-            GROUP BY o.location_id, o.city
+            SELECT o.city, o.address, o.location_id, COUNT(c.car_id) as available_count
+            FROM crc_office o
+            LEFT JOIN car c ON o.location_id = c.currentLocation_id AND c.car_status = 'Available'
+            GROUP BY o.location_id, o.city, o.address
             ORDER BY available_count DESC
-        `;
-        const [rows] = await db.query(query);
+        `;        const [rows] = await db.query(query);
         res.json(rows);
     } catch (err) {
         console.error('Error fetching dashboard data:', err);
