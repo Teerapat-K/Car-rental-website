@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.className = 'car-card';
                     card.innerHTML = `
                         <h3>${car.brand} ${car.model}</h3>
-                        <p><strong>Plate ID:</strong> ${car.plate_id}</p>
+                        <p><strong>Car_ID:</strong> ${car.car_id}</p>
                         <p><strong>Status:</strong> <span style="color: red; font-weight: bold;">${car.car_status}</span></p>
                         <hr style="margin: 10px 0;">
                         <div class="form-group" style="text-align: left;">
