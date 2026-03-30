@@ -242,3 +242,14 @@ button.secondary-btn:hover {
     color: #0c5460;
     border: 1px solid #bee5eb;
 }
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 2rem;
+    color: #7f8c8d;
+    font-style: italic;
+    font-size: 1.1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
