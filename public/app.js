@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Categories Feature
     async function loadCategories() {
-        elements.containers.categoriesGrid.innerHTML = 'Loading categories...';
+        elements.containers.categoriesGrid.innerHTML = '<div class="loading-state">Loading categories...</div>';
         try {
             const res = await fetch('/api/categories');
             if (!res.ok) throw new Error('Failed to load categories');
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Dashboard Feature
     async function loadDashboard() {
-        elements.containers.dashboardGrid.innerHTML = 'Loading...';
+        elements.containers.dashboardGrid.innerHTML = '<div class="loading-state">Loading dashboard...</div>';
         try {
             const res = await fetch('/api/dashboard');
             if (!res.ok) throw new Error('Failed to load dashboard');
