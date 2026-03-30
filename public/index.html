@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Rental System</title>
+    <title>Autocar Rental</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>Car Rental System</h1>
+        <h1>Autocar Rental</h1>
         <nav>
             <button id="nav-categories" class="nav-btn">Car Categories</button>
             <button id="nav-rent" class="nav-btn active">Rent a Car</button>
-            <button id="nav-dashboard" class="nav-btn">Locations Dashboard</button>
+            <button id="nav-dashboard" class="nav-btn">Locations</button>
             <button id="nav-profile" class="nav-btn">My Profile</button>
-            <button id="nav-admin" class="nav-btn">Admin Dashboard</button>
+            <button id="nav-admin" class="nav-btn">Checking Condition</button>
         </nav>
     </header>
     <main>
@@ -65,7 +65,7 @@
             <form id="profile-search-form" class="form-group">
                 <label for="profile-tdl">Enter Thai Driving Licence (TDL_ID) to view profile:</label>
                 <div style="display: flex; gap: 10px;">
-                    <input type="text" id="profile-tdl" required placeholder="e.g. 1234567890123">
+                    <input type="text" id="profile-tdl" required placeholder="e.g. 12345678" pattern="\d{8}" title="8 digit number" maxlength="8" minlength="8">
                     <button type="submit" style="margin-top: 0;">Search</button>
                 </div>
             </form>
@@ -138,7 +138,7 @@
                 </div>
                 <div class="form-group">
                     <label for="tdl">Thai Driving Licence (TDL_ID):</label>
-                    <input type="text" id="tdl" required>
+                    <input type="text" id="tdl" required pattern="\d{8}" title="8 digit number" maxlength="8" minlength="8" placeholder="12345678">
                 </div>
                 <div class="form-group">
                     <label for="phone">Phone:</label>
