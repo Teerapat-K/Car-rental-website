@@ -117,6 +117,12 @@ app.post('/api/reserve', async (req, res) => {
             ) VALUES (?, ?, ?, ?, NOW(), ?, ?, 1, ?)
         `, [nextResId, carId, finalCustId, amount, pickupDate, returnDate, nextStatusId]);
 
+        // 5. Update car status to 'reserved'
+        await connection.query(
+            "UPDATE car SET car_status = 'reserved' WHERE car_id = ?",
+            [carId]
+        );
+
         // Commit transaction
         await connection.commit();
         res.status(200).json({ message: 'payment successfully' });
